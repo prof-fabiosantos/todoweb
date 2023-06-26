@@ -1,0 +1,59 @@
+.App {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.task-container {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.task-container input[type='text'] {
+  flex: 1;
+  padding: 5px;
+}
+
+.task-container button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.task-container button:hover {
+  background-color: #45a049;
+}
+
+.task-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.task-item .task-title {
+  flex: 1;
+}
+
+.task-item .delete-button {
+  margin-left: 10px;
+  padding: 3px 6px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.task-item .delete-button:hover {
+  background-color: #d32f2f;
+}
