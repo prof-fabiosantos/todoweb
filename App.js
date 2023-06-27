@@ -20,9 +20,9 @@ function App() {
       const response = await fetch('http://127.0.0.1:5000/api/tasks', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ task: newTask })
+        body: JSON.stringify({ task: newTask }),
       });
       if (response.ok) {
         setNewTask('');
@@ -33,6 +33,19 @@ function App() {
 
   const deleteTask = async (taskId) => {
     const response = await fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, { method: 'DELETE' });
+    if (response.ok) {
+      fetchTasks();
+    }
+  };
+
+  const updateTask = async (taskId, newTitle) => {
+    const response = await fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ task: newTitle }),
+    });
     if (response.ok) {
       fetchTasks();
     }
@@ -53,7 +66,12 @@ function App() {
       <ul className="task-list">
         {tasks.map((task) => (
           <li key={task.id} className="task-item">
-            <span className="task-title">{task.title}</span>
+            <input
+              type="text"
+              value={task.title}
+              onChange={(e) => updateTask(task.id, e.target.value)}
+              className="task-title"
+            />
             <button className="delete-button" onClick={() => deleteTask(task.id)}>
               Excluir
             </button>
@@ -65,4 +83,3 @@ function App() {
 }
 
 export default App;
-
