@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, g
 import sqlite3
 from flask_cors import CORS
-from flask_cors import cross_origin
 
 app = Flask(__name__)
 CORS(app)
@@ -35,6 +34,15 @@ def add_task():
     cursor = db.cursor()
     task = request.json.get('task')
     cursor.execute("INSERT INTO tasks (title) VALUES (?)", (task,))
+    db.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    db = get_db()
+    cursor = db.cursor()
+    task = request.json.get('task')
+    cursor.execute("UPDATE tasks SET title=? WHERE id=?", (task, task_id))
     db.commit()
     return jsonify({'success': True})
 
