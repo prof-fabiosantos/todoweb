@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Exemplo de Interação com API</title>
+  <style>
+    .task-container {
+  margin-bottom: 10px;
+}
+
+.task-container input[type='text'] {
+  padding: 5px;
+}
+
+.task-container button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.task-container button:hover {
+  background-color: #45a049;
+}
+
+.task-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.task-item .task-title {
+  flex: 1;
+}
+
+.task-item .edit-button,
+.task-item .save-button,
+.task-item .cancel-button,
+.task-item .delete-button {
+  margin-left: 10px;
+  padding: 3px 6px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.task-item .edit-button:hover,
+.task-item .save-button:hover,
+.task-item .cancel-button:hover,
+.task-item .delete-button:hover {
+  background-color: #1976d2;
+}
+
+.task-item .delete-button {
+  background-color: #ff0000;
+}
+
+.task-item .delete-button:hover {
+  background-color: #cc0000;
+}
+
+  </style>
+</head>
+<body>
+  <h1>Lista de Tarefas</h1>
+  <div class="task-container">
+    <input type="text" id="newTaskInput" placeholder="Adicionar uma tarefa" />
+    <button onclick="addTask()">Adicionar</button>
+  </div>
+  <ul class="task-list" id="taskList">
+  </ul>
+
+  <script>
+    // Função para criar um elemento HTML com atributos
+    function createElement(tag, attributes) {
+      const element = document.createElement(tag);
+      for (let key in attributes) {
+        if (attributes.hasOwnProperty(key)) {
+          element.setAttribute(key, attributes[key]);
+        }
+      }
+      return element;
+    }
+
+    // Função para buscar as tasks
+    async function fetchTasks() {
+      const response = await fetch('http://127.0.0.1:5000/api/tasks');
+      const data = await response.json();
+      return data;
+    }
+
+    // Função para adicionar uma task à lista
+    async function addTask() {
+      const newTaskInput = document.getElementById('newTaskInput');
+      const newTask = newTaskInput.value.trim();
+
+      if (newTask !== '') {
+        const taskList = document.getElementById('taskList');
+
+        // Cria o elemento li para a task
+        const taskItem = createElement('li', { class: 'task-item' });
+
+        // Cria o elemento span para o título da task
+        const taskTitle = createElement('span', { class: 'task-title' });
+        taskTitle.textContent = newTask;
+
+        // Cria os botões de ação
+        const editButton = createElement('button', { class: 'edit-button' });
+        editButton.textContent = 'Editar';
+        editButton.onclick = editTask;
+
+        const saveButton = createElement('button', { class: 'save-button', style: 'display: none;' });
+        saveButton.textContent = 'Salvar';
+        saveButton.onclick = saveTask;
+
+        const cancelButton = createElement('button', { class: 'cancel-button', style: 'display: none;' });
+        cancelButton.textContent = 'Cancelar';
+        cancelButton.onclick = cancelEditTask;
+
+        const deleteButton = createElement('button', { class: 'delete-button' });
+        deleteButton.textContent = 'Excluir';
+        deleteButton.onclick = deleteTask;
+
+        // Adiciona os elementos à task
+        taskItem.appendChild(taskTitle);
+        taskItem.appendChild(editButton);
+        taskItem.appendChild(saveButton);
+        taskItem.appendChild(cancelButton);
+        taskItem.appendChild(deleteButton);
+
+        // Adiciona a task à lista
+        taskList.appendChild(taskItem);
+
+        // Limpa o input
+        newTaskInput.value = '';
+
+        // Faz a chamada de API para adicionar a task
+        await fetch('http://127.0.0.1:5000/api/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ task: newTask })
+        });
+      }
+    }
+
+    // Função para editar uma task
+    function editTask() {
+      const taskItem = this.parentNode;
+      const taskTitle = taskItem.querySelector('.task-title');
+      const editButton = taskItem.querySelector('.edit-button');
+      const saveButton = taskItem.querySelector('.save-button');
+      const cancelButton = taskItem.querySelector('.cancel-button');
+
+      taskTitle.contentEditable = true;
+      taskTitle.focus();
+
+      editButton.style.display = 'none';
+      saveButton.style.display = 'inline-block';
+      cancelButton.style.display = 'inline-block';
+    }
+
+    // Função para salvar uma task editada
+    async function saveTask() {
+      const taskItem = this.parentNode;
+      const taskTitle = taskItem.querySelector('.task-title');
+      const editButton = taskItem.querySelector('.edit-button');
+      const saveButton = taskItem.querySelector('.save-button');
+      const cancelButton = taskItem.querySelector('.cancel-button');
+
+      const taskId = taskItem.dataset.taskId;
+      const updatedTask = taskTitle.textContent.trim();
+
+      if (updatedTask !== '') {
+        // Faz a chamada de API para atualizar a task
+        await fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ task: updatedTask })
+        });
+      }
+
+      taskTitle.contentEditable = false;
+
+      editButton.style.display = 'inline-block';
+      saveButton.style.display = 'none';
+      cancelButton.style.display = 'none';
+    }
+
+    // Função para cancelar a edição de uma task
+    function cancelEditTask() {
+      const taskItem = this.parentNode;
+      const taskTitle = taskItem.querySelector('.task-title');
+      const editButton = taskItem.querySelector('.edit-button');
+      const saveButton = taskItem.querySelector('.save-button');
+      const cancelButton = taskItem.querySelector('.cancel-button');
+
+      taskTitle.contentEditable = false;
+
+      editButton.style.display = 'inline-block';
+      saveButton.style.display = 'none';
+      cancelButton.style.display = 'none';
+
+      // Restaura o valor original do título da task
+      const originalTitle = taskItem.dataset.originalTitle;
+      taskTitle.textContent = originalTitle;
+    }
+
+    // Função para excluir uma task
+    async function deleteTask() {
+      const taskItem = this.parentNode;
+      const taskId = taskItem.dataset.taskId;
+
+      // Faz a chamada de API para excluir a task
+      await fetch(`http://127.0.0.1:5000/api/tasks/${taskId}`, {
+        method: 'DELETE'
+      });
+
+      // Remove a task da lista
+      taskItem.parentNode.removeChild(taskItem);
+    }
+
+    // Função para popular a lista de tasks
+    async function populateTaskList() {
+      const taskList = document.getElementById('taskList');
+      taskList.innerHTML = '';
+
+      // Busca as tasks através da API
+      const tasks = await fetchTasks();
+
+      // Popula a lista de tasks
+      tasks.forEach((task) => {
+        // Cria o elemento li para a task
+        const taskItem = createElement('li', { class: 'task-item', 'data-task-id': task.id });
+
+        // Cria o elemento span para o título da task
+        const taskTitle = createElement('span', { class: 'task-title' });
+        taskTitle.textContent = task.title;
+
+        // Cria os botões de ação
+        const editButton = createElement('button', { class: 'edit-button' });
+        editButton.textContent = 'Editar';
+        editButton.onclick = editTask;
+
+        const saveButton = createElement('button', { class: 'save-button', style: 'display: none;' });
+        saveButton.textContent = 'Salvar';
+        saveButton.onclick = saveTask;
+
+        const cancelButton = createElement('button', { class: 'cancel-button', style: 'display: none;' });
+        cancelButton.textContent = 'Cancelar';
+        cancelButton.onclick = cancelEditTask;
+
+        const deleteButton = createElement('button', { class: 'delete-button' });
+        deleteButton.textContent = 'Excluir';
+        deleteButton.onclick = deleteTask;
+
+        // Adiciona os elementos à task
+        taskItem.appendChild(taskTitle);
+        taskItem.appendChild(editButton);
+        taskItem.appendChild(saveButton);
+        taskItem.appendChild(cancelButton);
+        taskItem.appendChild(deleteButton);
+
+        // Adiciona a task à lista
+        taskList.appendChild(taskItem);
+      });
+    }
+
+    // Popula a lista de tasks ao carregar a página
+    populateTaskList();
+  </script>
+</body>
+</html>
+
+
+
+
+
